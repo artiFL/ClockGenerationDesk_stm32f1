@@ -1,10 +1,10 @@
 import sys
 import glob
+from numpy import byte
 import serial
 import time
 def serial_ports():
     """ Lists serial port names
-
         :raises EnvironmentError:
             On unsupported or unknown platforms
         :returns:
@@ -30,19 +30,33 @@ def serial_ports():
             pass
     return result
 
+freq_pic = 100000000
+
+
+span = 20000000
+LO_pic = freq_pic - span / 2
+
 def main():
     list_ports = serial_ports()
     print(list_ports)
 
-    ser = serial.Serial("/dev/tty.usbmodem6D783F5A53491", 115200)  # open serial port
-    #ser = serial.Serial("/dev/tty.usbmodem8D89426B56511", 115200)  # open serial port
-
-    print(ser)         # check which port was really used
+    heterodine = serial.Serial("/dev/tty.usbmodem6D783F5A53491", 115200)  # open serial port
+    input = serial.Serial("/dev/tty.usbmodem8D89426B56511", 115200)  # open serial port
     time.sleep(1)
-    #ser.write(b"start_spam 0 36000000 100000 36500000 \n")
-    ser.write(b"clock Hz 968000000 \n")     
+    #input.write(b"start_spam 1 2000000000 10000 2000100000 \n") 
+
+
+    RF_freq = 'clock Hz ' + str(freq_pic) + '\n'
+    input.write(bytes(RF_freq, encoding="utf-8"))  
+    
+    
+    LO_frreq = 'clock Hz ' + str(LO_pic) + '\n'
+    heterodine.write(bytes(LO_frreq, encoding="utf-8"))  
+    print(f'RF = {freq_pic}  LO = {LO_pic}')
+
     print("Succes")
-    ser.close()
+    input.close()
+    heterodine.close()
 
 if __name__ == '__main__':
     main()
